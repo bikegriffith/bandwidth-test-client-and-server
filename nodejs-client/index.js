@@ -289,10 +289,6 @@ function uploadSpeed(url, sizes, maxTime, callback) {
   return this;
 }
 
-
-module.exports = speedTest;
-
-
 function simpleUploadTest() {
   var sizes     = []
     , sizesizes = [
@@ -321,7 +317,6 @@ function simpleUploadTest() {
     , log = console.log.bind(console)
     , options = {}
     , finalData
-    , bar
     ;
   var test = uploadSpeed.call(self, 'http://localhost:3000', sizes, options.maxTime, function(err, speed) {
     var fixed = speed / 125000;
@@ -329,36 +324,22 @@ function simpleUploadTest() {
     self.emit('uploadspeed', fixed);
   });
 
-  function prog(what, pct) {
+  var bar = new ProgressBar('Upload speed test [:bar] :percent', {
+      complete: '=',
+      incomplete: ' ',
+      width: 20,
+      total: 100
+    });
+
+  var lastPct = 0;
+  test.on('uploadprogress', function(pct) {
     if (pct >= 100) {
       if (bar) bar.terminate();
       bar = null;
       return;
     }
-
-    if (!bar) {
-      var green = '\u001b[42m \u001b[0m'
-        , red   = '\u001b[41m \u001b[0m'
-        ;
-
-      bar = new ProgressBar(' ' + what + ' [:bar] :percent', {
-        complete:   green,
-        incomplete: ' ',
-        clear:      true,
-        width:      100,
-        total:      100
-      });
-    }
-
-    bar.update(pct / 100);
-  }
-
-  test.on('downloadprogress', function(pct) {
-    prog('download', pct);
-  });
-
-  test.on('uploadprogress', function(pct) {
-    prog('upload', pct);
+    bar.tick((pct - lastPct));
+    lastPct = pct;
   });
 
   test.on('downloadspeed', function(speed) {
@@ -370,11 +351,11 @@ function simpleUploadTest() {
   });
 
   test.on('downloadspeedprogress', function(speed) {
-    log('Download speed (in progress): ', speed.toFixed(2) + 'Mbps');
+    //log('Download speed (in progress): ', speed.toFixed(2) + 'Mbps');
   });
 
   test.on('uploadspeedprogress', function(speed) {
-    log('Upload speed (in progress): ', speed.toFixed(2) + 'Mbps');
+    //log('Upload speed (in progress): ', speed.toFixed(2) + 'Mbps');
   });
 
   test.on('data', function(data) {
@@ -390,4 +371,7 @@ function simpleUploadTest() {
   });
 }
 
-speedTest.simpleUploadTest = simpleUploadTest;
+
+module.exports = {
+  simpleUploadTest: simpleUploadTest,
+};
