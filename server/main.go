@@ -14,11 +14,6 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	// TODO:
-	// * add max upload size limit (to prevent dos)
-	// * add HTTP headers to prevent caching and compression (client Accept-Encoding: identity,
-	//   server Cache-Control: no-cache)
-	// * add simple authentication (but no SSL/TLS) to prevent abuse
 	mux.HandleFunc("/upload", addDefaultHeaders(handleUpload))
 	mux.HandleFunc("/download", addDefaultHeaders(handleDownload))
 
@@ -30,7 +25,7 @@ func main() {
 }
 
 func handleUpload(w http.ResponseWriter, r *http.Request) {
-	// Read in the Body (up to limit)
+	// Read in the HTTP body (up to limit)
 	maxUploadSizeMB, _ := strconv.Atoi(os.Getenv("MAX_UPLOAD_MB"))
 	r.Body = http.MaxBytesReader(w, r.Body, (int64)(maxUploadSizeMB*1024*1024))
 	size, _ := io.Copy(ioutil.Discard, r.Body)
