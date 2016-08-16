@@ -4,14 +4,23 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
 func main() {
 	mux := http.NewServeMux()
 
+	// TODO:
+	// * add CORS headers
+	// * add max upload size limit (to prevent dos)
+	// * add HTTP headers to prevent caching and compression
+	// * randomize download string to prevent compression
+	// * add simple authentication (but no SSL/TLS) to prevent abuse
 	mux.HandleFunc("/upload", handleUpload)
 	mux.HandleFunc("/download", handleDownload)
+
+	mux.Handle("/", http.FileServer(http.Dir(os.Getenv("STATIC_ROOT"))))
 
 	log.Println("Listening on port 3000...")
 	http.ListenAndServe(":3000", mux)

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bandwidth Test</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <h1>Bandwidth Test</h1>
+  <p><button id="start" class="btn btn-primary">Start Upload Test...</button></p>
+
+  <div class="row">
+    <div class="col-sm-8" style="padding-top:50px">
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width:0%;">
+          0%
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4 text-center">
+      <span style="font-size:4em;font-weight:bold;">0</span>
+      <span style="font-size:2em">Mbps</span>
+      <div>Upload</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+$('#start').click(function() {
+  $(this).attr('disabled', true);
+  alert('TODO');
+  fetch('/download?size=1000000').then(() => console.log(arguments));
+});
+</script>
+
+</body>
+</html>
