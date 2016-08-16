@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -20,16 +22,20 @@ func main() {
 	mux.HandleFunc("/upload", addDefaultHeaders(handleUpload))
 	mux.HandleFunc("/download", addDefaultHeaders(handleDownload))
 
-	mux.Handle("/", http.FileServer(http.Dir(os.Getenv("STATIC_ROOT"))))
+	staticRoot := os.Getenv("STATIC_ROOT")
+	mux.Handle("/", http.FileServer(http.Dir(staticRoot)))
 
 	log.Println("Listening on port 3000...")
 	http.ListenAndServe(":3000", mux)
 }
 
 func handleUpload(w http.ResponseWriter, r *http.Request) {
-	// Echo back the total request size (body + all headers)
-	size := (int)(r.ContentLength)
-	log.Println("Processed upload request of size", size)
+	// Read in the Body (up to limit)
+	maxUploadSizeMB, _ := strconv.Atoi(os.Getenv("MAX_UPLOAD_MB"))
+	r.Body = http.MaxBytesReader(w, r.Body, (int64)(maxUploadSizeMB*1024*1024))
+	size, _ := io.Copy(ioutil.Discard, r.Body)
+	expected := r.ContentLength
+	log.Println("Processed upload request of size", size, "and expected", expected)
 	response := fmt.Sprintf("OK")
 	w.Write([]byte(response))
 }
