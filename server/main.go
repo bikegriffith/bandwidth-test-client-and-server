@@ -14,11 +14,12 @@ func main() {
 	// TODO:
 	// * add CORS headers
 	// * add max upload size limit (to prevent dos)
-	// * add HTTP headers to prevent caching and compression
+	// * add HTTP headers to prevent caching and compression (client Accept-Encoding: identity,
+	//   server Cache-Control: no-cache)
 	// * randomize download string to prevent compression
 	// * add simple authentication (but no SSL/TLS) to prevent abuse
-	mux.HandleFunc("/upload", handleUpload)
-	mux.HandleFunc("/download", handleDownload)
+	mux.HandleFunc("/upload", addDefaultHeaders(handleUpload))
+	mux.HandleFunc("/download", addDefaultHeaders(handleDownload))
 
 	mux.Handle("/", http.FileServer(http.Dir(os.Getenv("STATIC_ROOT"))))
 
@@ -44,4 +45,18 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("."))
 	}
 	log.Println("Processed download request of size", size)
+}
+
+func addDefaultHeaders(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Add CORS support for browser-based clients
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Length, Accept-Encoding, Authorization")
+		// Ensure browser and proxies do not try to cache this; we need a full test.
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		fn(w, r)
+	}
 }
