@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -12,11 +13,9 @@ func main() {
 	mux := http.NewServeMux()
 
 	// TODO:
-	// * add CORS headers
 	// * add max upload size limit (to prevent dos)
 	// * add HTTP headers to prevent caching and compression (client Accept-Encoding: identity,
 	//   server Cache-Control: no-cache)
-	// * randomize download string to prevent compression
 	// * add simple authentication (but no SSL/TLS) to prevent abuse
 	mux.HandleFunc("/upload", addDefaultHeaders(handleUpload))
 	mux.HandleFunc("/download", addDefaultHeaders(handleDownload))
@@ -30,19 +29,19 @@ func main() {
 func handleUpload(w http.ResponseWriter, r *http.Request) {
 	// Echo back the total request size (body + all headers)
 	size := (int)(r.ContentLength)
-	for k, v := range r.Header {
-		size += len(k) + len(v)
-	}
 	log.Println("Processed upload request of size", size)
-	response := fmt.Sprintf("size=%d", size)
+	response := fmt.Sprintf("OK")
 	w.Write([]byte(response))
 }
 
 func handleDownload(w http.ResponseWriter, r *http.Request) {
-	// Generate fixed string of given length
+	// Generate random bytes of given length
+	w.Header().Set("Content-Type", "application/octet-stream")
 	size, _ := strconv.Atoi(r.URL.Query().Get("size"))
+	b := make([]byte, 1)
 	for i := 0; i < size; i++ {
-		w.Write([]byte("."))
+		b[0] = (byte)(rand.Int())
+		w.Write(b)
 	}
 	log.Println("Processed download request of size", size)
 }
